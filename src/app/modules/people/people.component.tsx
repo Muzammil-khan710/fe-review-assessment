@@ -3,8 +3,15 @@ import { usePeopleQuery } from "./query";
 
 import "./people.css";
 
+const ITEMS_PER_PAGE = 10
+const CURRENT_PAGE = 1
+
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
+
+  const firstIndexValue = (CURRENT_PAGE - 1) * ITEMS_PER_PAGE;
+  const lastIndexValue = firstIndexValue + ITEMS_PER_PAGE;
+  const slicedPeople = people?.slice(firstIndexValue, lastIndexValue);
 
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
@@ -41,7 +48,7 @@ export function People() {
       </thead>
 
       <tbody>
-        {people.length > 0 ? people.map((people, index) => (
+        {slicedPeople && slicedPeople.length > 0 ? slicedPeople.map((people, index) => (
           <tr key={index}>{renderCells(people)}</tr>
         ))
           :
