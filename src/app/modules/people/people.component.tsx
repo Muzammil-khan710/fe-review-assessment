@@ -41,9 +41,14 @@ export function People() {
       </thead>
 
       <tbody>
-        {people.map((people, index) => (
+        {people.length > 0 ? people.map((people, index) => (
           <tr key={index}>{renderCells(people)}</tr>
-        ))}
+        ))
+          :
+          <tr>
+            <td colSpan={5}>No People Available.</td>
+          </tr>
+        }
       </tbody>
     </table>
   );
