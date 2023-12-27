@@ -2,16 +2,43 @@ import { Person } from "./model";
 import { usePeopleQuery } from "./query";
 
 import "./people.css";
+import React, { useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 10
 const CURRENT_PAGE = 1
 
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
-
   const firstIndexValue = (CURRENT_PAGE - 1) * ITEMS_PER_PAGE;
   const lastIndexValue = firstIndexValue + ITEMS_PER_PAGE;
-  const slicedPeople = people?.slice(firstIndexValue, lastIndexValue);
+  const [sortData, setSortData] = useState<Person[] | undefined>([])
+  const [sortOrder, setSortOrder] = useState<"ascending" | "descending" | undefined>("ascending");
+
+  useEffect(() => {
+    if (people) {
+      sortByName("ascending");
+    }
+  }, [people]);
+
+  
+  const sortByName = (order?: "ascending" | "descending") => {
+    const sortedData = people?.slice().sort((a, b) => {
+      if (order === "ascending") {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.name.localeCompare(a.name);
+      }
+    });
+
+    setSortData(sortedData);
+    setSortOrder(order);
+  };
+
+  const resetToDefault = () => {
+    setSortData(people)
+  }
+
+  const slicedPeople = sortData?.slice(firstIndexValue, lastIndexValue);
 
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
@@ -36,10 +63,25 @@ export function People() {
   }
 
   return (
+  <>
+
+    <div>
+      <div>
+        Sort  By:
+        </div>
+        <div className="sort-btn-container">
+          <button className="sort-btn" onClick={() => sortOrder === 'ascending' ? sortByName('descending') : sortByName('ascending')} aria-sort={sortOrder}>
+            {sortOrder === "ascending" ? "a to z" : "z to a"}
+          </button>
+          <button className="sort-btn" onClick={() => resetToDefault()}>Reset to Default</button>
+        </div>
+
+    </div>
+
     <table>
       <thead>
         <tr>
-          <th>Name</th>
+          <th onClick={() => sortOrder === 'ascending' ? sortByName('descending') : sortByName('ascending')} aria-sort={sortOrder}>Name</th>
           <th>Show</th>
           <th>Actor/Actress</th>
           <th>Date of birth</th>
@@ -58,5 +100,6 @@ export function People() {
         }
       </tbody>
     </table>
+    </>
   );
 }
