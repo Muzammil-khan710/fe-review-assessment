@@ -13,6 +13,7 @@ export function People() {
   const lastIndexValue = firstIndexValue + ITEMS_PER_PAGE;
   const [sortData, setSortData] = useState<Person[] | undefined>([])
   const [sortOrder, setSortOrder] = useState<"ascending" | "descending" | undefined>("ascending");
+  const [searchData, setSearchData] = useState("")
 
   useEffect(() => {
     if (people) {
@@ -37,6 +38,18 @@ export function People() {
   const resetToDefault = () => {
     setSortData(people)
   }
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const searchTerm = event.target.value.toLowerCase();
+    setSearchData(searchTerm);
+
+    const filteredData = people?.filter((person) =>
+      person.name.toLowerCase().includes(searchTerm)
+    );
+
+    sortByName(sortOrder);
+    setSortData(filteredData);
+  };
 
   const slicedPeople = sortData?.slice(firstIndexValue, lastIndexValue);
 
@@ -64,16 +77,18 @@ export function People() {
 
   return (
   <>
-
     <div>
       <div>
-        Sort  By:
+        Filters
         </div>
         <div className="sort-btn-container">
           <button className="sort-btn" onClick={() => sortOrder === 'ascending' ? sortByName('descending') : sortByName('ascending')} aria-sort={sortOrder}>
             {sortOrder === "ascending" ? "a to z" : "z to a"}
           </button>
           <button className="sort-btn" onClick={() => resetToDefault()}>Reset to Default</button>
+          <label htmlFor="Search">
+            <input type="text" aria-labelledby="Search" id="Search" placeholder={"enter name"} value={searchData} onChange={e => handleSearch(e)}/>
+          </label>
         </div>
 
     </div>
