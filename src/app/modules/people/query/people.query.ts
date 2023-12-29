@@ -18,8 +18,8 @@ export const usePeopleQuery = (): PeopleQueryState => {
   const fetchPeoples = async () => {
     try {
       const { data } = await axios.get<Person[]>(`/${API_RESOURCE.PEOPLE}`);
-
-      setState({ data, loading: false, error: undefined });
+      const sortedData = data.slice().sort((a,b) => a.name.localeCompare(b.name))
+      setState({ data:sortedData, loading: false, error: undefined });
     } catch (error) {
       setState({ data: undefined, error: error as AxiosError, loading: false });
     }

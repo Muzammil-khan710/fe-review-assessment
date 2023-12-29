@@ -7,7 +7,6 @@ import { useEffect } from "react";
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
 
-
   useEffect(() => {
     console.log(people)
   }, [])
@@ -34,6 +33,8 @@ export function People() {
     return <h2>Oops! looks like something went wrong!</h2>;
   }
 
+  const visiblePeople = people?.slice(0, 10);
+
   return (
     <table>
       <thead>
@@ -47,9 +48,11 @@ export function People() {
       </thead>
 
       <tbody>
-        {people && people.length > 0 ? people.map((people, index) => (
-          <tr key={index}>{renderCells(people)}</tr>
-        )): (
+        {visiblePeople && visiblePeople.length > 0 ? (
+          visiblePeople.map((person, index) => (
+            <tr key={index}>{renderCells(person)}</tr>
+          ))
+        ) : (
           <tr>
             <td colSpan={5}>No People Available.</td>
           </tr>
