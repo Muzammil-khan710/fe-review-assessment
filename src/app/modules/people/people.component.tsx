@@ -4,11 +4,17 @@ import { usePeopleQuery } from "./query";
 import "./people.css";
 import { useEffect, useState } from "react";
 
+const ITEMS_PER_PAGE = 10
+const DEFAULT_PAGE = 1
+const COMBOBOX_OPTIONS = [10,15, 20];
+
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
   const [sortOrder, setSortOrder] = useState('ascending');
-  const [peopleState, setPeopleState] = useState(people || []);
+  const [peopleState, setPeopleState] = useState<Person[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
 
   useEffect(() => {
     if (people) {
@@ -43,14 +49,6 @@ export function People() {
     </>
   );
 
-  if (loading) {
-    return <p>Fetching People...</p>;
-  }
-
-  if (people === undefined || error) {
-    return <h2>Oops! looks like something went wrong!</h2>;
-  }
-
   const sortPeople = (currentSortOrder: 'ascending' | 'descending') => {
     const sortedPeople = [...peopleState].sort((a, b) => {
       if (currentSortOrder === 'ascending') {
@@ -68,19 +66,91 @@ export function People() {
     sortPeople(newSortOrder);
   };
   
-  const visiblePeople = peopleState?.slice(0, 10);
+  
+  const handleFirstPage = () => {
+    setCurrentPage(DEFAULT_PAGE);
+  };
+
+  const handleLastPage = () => {
+    const totalPages = Math.ceil(peopleState.length / ITEMS_PER_PAGE);
+    setCurrentPage(totalPages);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newItemsPerPage = parseInt(e.target.value, 10);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(DEFAULT_PAGE);
+  };
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const visiblePeople = peopleState?.slice(startIndex, endIndex);
+ 
+  if (loading) {
+    return <p>Fetching People...</p>;
+  }
+
+  if (people === undefined || error) {
+    return <h2>Oops! looks like something went wrong!</h2>;
+  }
 
   return (
     <>
-      <div>
-        <label htmlFor="Search">Search:</label>
-        <input
-        aria-label="Search"
-          type="text"
-          id="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      <div className="filters-container">
+        <div>
+          <label htmlFor="Search">Search:</label>
+          <input
+            aria-label="Search"
+            type="text"
+            id="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="buttons-wrapper">
+          <button
+            onClick={() => handleFirstPage()}
+            disabled={currentPage === DEFAULT_PAGE}
+          >
+            First
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === DEFAULT_PAGE}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={endIndex >= peopleState.length}
+          >
+            Next
+          </button>
+          <button
+            onClick={() => handleLastPage()}
+            disabled={endIndex >= peopleState.length}
+          >
+            Last
+          </button>
+        </div>
+          {visiblePeople && <p className="result">Showing {startIndex + 1}-{endIndex} of {people.length} </p> }
+          <div>
+          <label htmlFor="selectOptions">Items per page:</label>
+          <select aria-label="selectOptions" id="selectOptions"
+           onChange={handleItemsPerPageChange}
+           value={itemsPerPage}
+          >
+          {COMBOBOX_OPTIONS.map((option) => (
+              <option aria-label="option" key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          </div>
       </div>
     <table>
       <thead>

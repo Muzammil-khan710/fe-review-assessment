@@ -5,3 +5,23 @@ table {
 th {
   text-align: left;
 }
+
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 20px 0;
+}
+
+button {
+  padding: 5px 10px;
+}
+
+.buttons-wrapper {
+  display: flex;
+  gap: 10px;
+}
+
+.result {
+  margin: 0;
+}
