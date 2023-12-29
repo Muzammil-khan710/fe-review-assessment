@@ -2,9 +2,15 @@ import { Person } from "./model";
 import { usePeopleQuery } from "./query";
 
 import "./people.css";
+import { useEffect } from "react";
 
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
+
+
+  useEffect(() => {
+    console.log(people)
+  }, [])
 
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
@@ -41,9 +47,13 @@ export function People() {
       </thead>
 
       <tbody>
-        {people.map((people, index) => (
+        {people && people.length > 0 ? people.map((people, index) => (
           <tr key={index}>{renderCells(people)}</tr>
-        ))}
+        )): (
+          <tr>
+            <td colSpan={5}>No People Available.</td>
+          </tr>
+        )}
       </tbody>
     </table>
   );
