@@ -2,14 +2,18 @@ import { Person } from "./model";
 import { usePeopleQuery } from "./query";
 
 import "./people.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
+  const [sortOrder, setSortOrder] = useState('ascending')
+  const [peopleState, setPeopleState] = useState(people || [])
 
   useEffect(() => {
-    console.log(people)
-  }, [])
+    if (people) {
+      setPeopleState(people)
+    }
+  }, [people])
 
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
@@ -33,13 +37,29 @@ export function People() {
     return <h2>Oops! looks like something went wrong!</h2>;
   }
 
-  const visiblePeople = people?.slice(0, 10);
+  const sortPeople = (currentSortOrder: 'ascending' | 'descending') => {
+    const sortedPeople = [...peopleState].sort((a, b) => {
+      if (currentSortOrder === 'ascending') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.name.localeCompare(a.name);
+      }
+    });
+    setPeopleState(sortedPeople);
+  };
+
+  const toggleSort = () => {
+    const newSortOrder = sortOrder === 'ascending' ? 'descending' : 'ascending';
+    setSortOrder(newSortOrder);
+    sortPeople(newSortOrder);
+  };
+  const visiblePeople = peopleState?.slice(0, 10);
 
   return (
     <table>
       <thead>
         <tr>
-          <th>Name</th>
+          <th onClick={() => toggleSort()} aria-sort={sortOrder === 'ascending' ? 'ascending' : 'descending'}>Name</th>
           <th>Show</th>
           <th>Actor/Actress</th>
           <th>Date of birth</th>
