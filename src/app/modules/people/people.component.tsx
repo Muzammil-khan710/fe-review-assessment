@@ -1,40 +1,35 @@
 import { Person } from "./model";
 import { usePeopleQuery } from "./query";
-
 import "./people.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const ITEMS_PER_PAGE = 10
-const DEFAULT_PAGE = 1
-const COMBOBOX_OPTIONS = [10,15, 20];
+const ITEMS_PER_PAGE = 10;
+const DEFAULT_PAGE = 1;
+const COMBOBOX_OPTIONS = [10, 15, 20];
 
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
   const [sortOrder, setSortOrder] = useState('ascending');
-  const [peopleState, setPeopleState] = useState<Person[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    if (people) {
-      setPeopleState(people)
-    }
-  }, [people])
+  const sortedPeople = useMemo(() => {
+    if (!people) return [];
 
-  useEffect(() => {
-    if (searchQuery === '') {
-      setPeopleState(people || []);
-    } else if (people) {
-      const filteredPeople = people
-        .slice()
-        .filter((person) =>
-          person.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      setPeopleState(filteredPeople);
-    }
-  }, [searchQuery, people]);
+    return [...people].sort((a, b) => {
+      return sortOrder === 'ascending' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    });
+  }, [people, sortOrder]);
 
+  const filteredPeople = useMemo(() => {
+    if (!people || searchQuery === '') return sortedPeople;
+
+    return sortedPeople.filter((person) =>
+      person.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sortedPeople, searchQuery]);
+  
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
       <td>{name}</td>
@@ -49,30 +44,17 @@ export function People() {
     </>
   );
 
-  const sortPeople = (currentSortOrder: 'ascending' | 'descending') => {
-    const sortedPeople = [...peopleState].sort((a, b) => {
-      if (currentSortOrder === 'ascending') {
-        return a.name.localeCompare(b.name);
-      } else {
-        return b.name.localeCompare(a.name);
-      }
-    });
-    setPeopleState(sortedPeople);
-  };
-
   const toggleSort = () => {
     const newSortOrder = sortOrder === 'ascending' ? 'descending' : 'ascending';
     setSortOrder(newSortOrder);
-    sortPeople(newSortOrder);
   };
-  
   
   const handleFirstPage = () => {
     setCurrentPage(DEFAULT_PAGE);
   };
 
   const handleLastPage = () => {
-    const totalPages = Math.ceil(peopleState.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredPeople.length / itemsPerPage);
     setCurrentPage(totalPages);
   };
 
@@ -88,7 +70,7 @@ export function People() {
   
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const visiblePeople = peopleState?.slice(startIndex, endIndex);
+  const visiblePeople = filteredPeople.slice(startIndex, endIndex);
  
   if (loading) {
     return <p>Fetching People...</p>;
@@ -126,18 +108,18 @@ export function People() {
           </button>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={endIndex >= peopleState.length}
+            disabled={endIndex >= filteredPeople.length}
           >
             Next
           </button>
           <button
             onClick={() => handleLastPage()}
-            disabled={endIndex >= peopleState.length}
+            disabled={endIndex >= filteredPeople.length}
           >
             Last
           </button>
         </div>
-          {visiblePeople && <p className="result">Showing {startIndex + 1}-{endIndex} of {people.length} </p> }
+          {visiblePeople && <p className="result">Showing {startIndex + 1}-{endIndex} of {filteredPeople.length} </p> }
           <div>
           <label htmlFor="selectOptions">Items per page:</label>
           <select aria-label="selectOptions" id="selectOptions"
