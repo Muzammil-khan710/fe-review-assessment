@@ -6,14 +6,28 @@ import { useEffect, useState } from "react";
 
 export function People() {
   const { data: people, loading, error } = usePeopleQuery();
-  const [sortOrder, setSortOrder] = useState('ascending')
-  const [peopleState, setPeopleState] = useState(people || [])
+  const [sortOrder, setSortOrder] = useState('ascending');
+  const [peopleState, setPeopleState] = useState(people || []);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     if (people) {
       setPeopleState(people)
     }
   }, [people])
+
+  useEffect(() => {
+    if (searchQuery === '') {
+      setPeopleState(people || []);
+    } else if (people) {
+      const filteredPeople = people
+        .slice()
+        .filter((person) =>
+          person.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      setPeopleState(filteredPeople);
+    }
+  }, [searchQuery, people]);
 
   const renderCells = ({ name, show, actor, movies, dob }: Person) => (
     <>
@@ -53,9 +67,21 @@ export function People() {
     setSortOrder(newSortOrder);
     sortPeople(newSortOrder);
   };
+  
   const visiblePeople = peopleState?.slice(0, 10);
 
   return (
+    <>
+      <div>
+        <label htmlFor="Search">Search:</label>
+        <input
+        aria-label="Search"
+          type="text"
+          id="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
     <table>
       <thead>
         <tr>
@@ -79,5 +105,6 @@ export function People() {
         )}
       </tbody>
     </table>
+    </>
   );
 }
